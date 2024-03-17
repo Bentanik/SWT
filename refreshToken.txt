@@ -1,0 +1,31 @@
+if (pm.collectionVariables.has("accessToken")) {
+    pm.sendRequest({
+        url: "localhost:8080/api/v1/auth/refreshtoken",
+        method: "POST",
+        header: {
+            "Content-Type": "application/json"
+        },
+        body: {
+            mode: "raw",
+            raw: JSON.stringify({
+                "username": "user",
+                "password": "123456"
+            })
+        }
+    }, function (err, res) {
+        if (err) {
+            console.error("Login error:", err);
+            // Nếu có lỗi khi đăng nhập, dừng request và báo lỗi
+            pm.collectionVariables.set("login_error", "Login error: " + err);
+            pm.request.abort();
+        } else {
+            // Nếu đăng nhập thành công, lưu access_token vào biến variables
+            const responseBody = res.json();
+            pm.collectionVariables.set("accessToken", responseBody.newAccessToken);
+            console.log("Đăng nhập thành công.");
+            pm.request.headers.add({ key: 'Authorization', value: responseBody.newAccessToken });
+        }
+    });
+} else {
+    console.log("Login please");
+}
